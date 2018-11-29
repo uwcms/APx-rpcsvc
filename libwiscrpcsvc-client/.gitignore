@@ -1,0 +1,4 @@
+/rpctest
+/proto_cpp
+*.o
+*.so

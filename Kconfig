@@ -1,0 +1,18 @@
+###############################################################################
+# Please modify this file if you want to configure your own application.
+# You can uncommon and/or change the following Kconfig elements.
+###############################################################################
+
+
+if ROOTFS_COMPONENT_APPS_NAME_RPCSVC
+	config APPS_RPCSVC
+		bool
+		default y
+		select ROOTFS_PACKAGES_LIBSTDCPLUSPLUS6
+	comment "No additional options for RPCSVC"
+
+# 	config APPS_RPCSVC_OPTION0
+#	bool "option0"
+#	help
+#	  Help text
+endif

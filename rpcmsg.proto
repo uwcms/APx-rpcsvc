@@ -1,0 +1,31 @@
+option optimize_for = LITE_RUNTIME;
+
+package wisc.RPCMsgProto;
+
+message RPCMsg {
+	required string method                     = 1;
+	repeated RPCString string_fields           = 2;
+	repeated RPCWord word_fields               = 3;
+	repeated RPCStringArray stringarray_fields = 4;
+	repeated RPCWordArray wordarray_fields     = 5;
+}
+
+message RPCString {
+	required string name = 1;
+	required bytes value = 2;
+}
+
+message RPCWord {
+	required string name  = 1;
+	required uint32 value = 2;
+}
+
+message RPCStringArray {
+	required string name = 1;
+	repeated bytes value = 2;
+}
+
+message RPCWordArray {
+	required string name  = 1;
+	repeated uint32 value = 2 [packed=true];
+}

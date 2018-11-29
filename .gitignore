@@ -1,0 +1,5 @@
+/packages/*
+/modules/*.h
+/rpcsvc
+*.so
+*.o
