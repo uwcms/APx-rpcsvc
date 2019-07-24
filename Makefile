@@ -1,5 +1,6 @@
-ifndef PETALINUX
-PETA_ROOTFS=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v2013.10-final/CTP7/build/linux/rootfs
+# For external builds using a rootfs.
+ifdef PETA_ROOTFS
+#PETA_ROOTFS=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v2013.10-final/CTP7/build/linux/rootfs
 
 CFLAGS= -fomit-frame-pointer -pipe -fno-common -fno-builtin \
 	-Wall \
@@ -17,11 +18,6 @@ LDLIBS= -L$(PETA_ROOTFS)/targetroot/lib \
 
 BUILDINFO_PATH=../../apps/buildinfo
 CXX=arm-xilinx-linux-gnueabi-g++
-else
-BUILDINFO_PATH=$$PROOT/components/apps/buildinfo
-
-include apps.common.mk
-include $(PETALINUX)/rpm.mk
 endif
 
 APP = rpcsvc
@@ -30,8 +26,10 @@ APP = rpcsvc
 APP_OBJS = rpcsvc.o run_client.o ModuleManager.o wiscRPCMsg.o LogManager.o LockTools.o proto_cpp/rpcmsg.pb.o
 
 ifndef PETALINUX
+# Generic
 all: build modules packages
 else
+# PetaLinux 2016.1 style build system
 all: build modules packages install
 endif
 
@@ -46,6 +44,7 @@ clean:
 	for I in *.h; do rm -f modules/$$I; done
 
 ifdef PETALINUX
+# PetaLinux 2016.1 style build system
 install: $(APP) modules packages
 	rm -rf instroot *.rpm
 	mkdir instroot
