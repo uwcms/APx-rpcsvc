@@ -8,7 +8,8 @@
 # Short-Description: rpcsvc
 ### END INIT INFO
 
-RPCUSER="$(egrep '^[^:]+:[^:]+:1000:' /etc/passwd | cut -d: -f1)"
+#RPCUSER="$(egrep '^[^:]+:[^:]+:1000:' /etc/passwd | cut -d: -f1)"
+RPCUSER=root
 
 if [ -z "$RPCUSER" ]; then
 	echo No standard mode user created.  Cannot run RPC Service.
@@ -20,5 +21,5 @@ else
 	echo Starting rpcsvc as $RPCUSER
 	/bin/mkdir -p /var/log/rpcsvc
 	/bin/chown -R $RPCUSER /var/log/rpcsvc
-	/bin/su -c /bin/rpcsvc $RPCUSER
+	/bin/su -c /usr/bin/rpcsvc $RPCUSER
 fi

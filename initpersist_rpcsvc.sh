@@ -1,29 +1,30 @@
 #!/bin/sh
 
-if [ ! -e /mnt/persistent/rpcmodules ]; then
-	writemount
-fi
+mkdir -p /mnt/persistent/config # XXX
+#if [ ! -e /mnt/persistent/rpcmodules ]; then
+#	writemount
+#fi
 
-if [ -n "$PERSIST_IS_RW" ]; then
+#if [ -n "$PERSIST_IS_RW" ]; then
 	mkdir -p /mnt/persistent/rpcmodules
 	chmod 01775 /mnt/persistent/rpcmodules
 	chown root:1000 /mnt/persistent/rpcmodules
-fi
+#fi
 
-cd /usr/local/rpcmodules.preinstall
+cd /usr/share/rpcmodules.preinstall
 for I in *; do
 	if [ "$(md5sum "$I" 2>/dev/null | cut -d\  -f1)" != "$(md5sum "/mnt/persistent/rpcmodules/$I" 2>/dev/null | cut -d\  -f1)" ]; then
-		writemount
+		#writemount
 		cp -p "$I" /mnt/persistent/rpcmodules/
 	fi
-	if [ -n "$PERSIST_IS_RW" ]; then
+	#if [ -n "$PERSIST_IS_RW" ]; then
 		chmod 0755 /mnt/persistent/rpcmodules/"$I"
-	fi
+	#fi
 done
 echo Initialized /mnt/persistent/rpcmodules
 
 if [ ! -f /mnt/persistent/config/rpcsvc.acl ]; then
-	writemount
+	#writemount
 	cat >/mnt/persistent/config/rpcsvc.acl <<EOF
 # This file contains the list of IP addresses permitted to access rpcsvc.
 # Each line contains an IP address in CIDR format.
@@ -37,7 +38,7 @@ if [ ! -f /mnt/persistent/config/rpcsvc.acl ]; then
 EOF
 	echo Initialized /mnt/persistent/config/rpcsvc.acl
 fi
-if [ -n "$PERSIST_IS_RW" ]; then
+#if [ -n "$PERSIST_IS_RW" ]; then
 	chown 1000:1000 /mnt/persistent/config/rpcsvc.acl
 	chmod 0644 /mnt/persistent/config/rpcsvc.acl
-fi
+#fi

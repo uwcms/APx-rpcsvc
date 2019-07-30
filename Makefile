@@ -1,7 +1,7 @@
-ifndef PETALINUX
-PETA_ROOTFS=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v2013.10-final/CTP7/build/linux/rootfs
+ifdef PETA_ROOTFS
+#PETA_ROOTFS=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v2013.10-final/CTP7/build/linux/rootfs
 
-CFLAGS= -fomit-frame-pointer -pipe -fno-common -fno-builtin \
+CXXFLAGS= -fomit-frame-pointer -pipe -fno-common -fno-builtin \
 	-Wall \
 	-march=armv7-a -mfpu=neon -mfloat-abi=softfp \
 	-mthumb-interwork -mtune=cortex-a9 \
@@ -15,13 +15,7 @@ LDLIBS= -L$(PETA_ROOTFS)/targetroot/lib \
 	-L$(PETA_ROOTFS)/targetroot/usr/lib \
 	-L$(PETA_ROOTFS)/stage/usr/lib
 
-BUILDINFO_PATH=../../apps/buildinfo
 CXX=arm-xilinx-linux-gnueabi-g++
-else
-BUILDINFO_PATH=$$PROOT/components/apps/buildinfo
-
-include apps.common.mk
-include $(PETALINUX)/rpm.mk
 endif
 
 APP = rpcsvc
@@ -65,16 +59,16 @@ install: $(APP) modules packages
 endif
 
 %.o: %.cpp
-	$(CXX) -c $(CFLAGS) -o $@ $<
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 wiscRPCMsg.o: wiscRPCMsg.cpp proto_cpp
 
 proto_cpp/%.pb.o: proto_cpp
-	$(CXX) -c $(CFLAGS) -o $@ $(patsubst proto_cpp/%.pb.o,proto_cpp/%.pb.cc,$@)
+	$(CXX) -c $(CXXFLAGS) -o $@ $(patsubst proto_cpp/%.pb.o,proto_cpp/%.pb.cc,$@)
 
 proto_cpp: $(wildcard *.proto)
 	@mkdir -p proto_cpp/
-	protoc --cpp_out=proto_cpp/ $^
+	/usr/bin/protoc --cpp_out=proto_cpp/ $^
 	@touch -c proto_cpp/
 
 modules: $(patsubst %.cpp, %.so, $(wildcard modules/*.cpp))
@@ -85,10 +79,10 @@ modules/%.h: %.h
 MODULE_HEADERS = $(patsubst %.h, modules/%.h, $(wildcard *.h))
 
 modules/optical.so: modules/optical.cpp $(MODULE_HEADERS)
-	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lwisci2c
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lwisci2c
 
 modules/%.so: modules/%.cpp $(MODULE_HEADERS)
-	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $<
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $<
 
 packages: packages/module_dev.tbz2 packages/client_dev.tbz2
 
