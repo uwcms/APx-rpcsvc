@@ -10,16 +10,16 @@ test: rpctest
 lib: libwiscrpcsvc.so
 
 rpctest: rpctest.cpp libwiscrpcsvc.so
-	g++ -o rpctest  rpctest.cpp -I. -L. -lwiscrpcsvc
+	g++ -std=c++11 -o rpctest  rpctest.cpp -I. -L. -lwiscrpcsvc
 
 libwiscrpcsvc.so: libwiscrpcsvc.o wiscRPCMsg.o proto_cpp/rpcmsg.pb.o
-	g++ -shared -fPIC -o libwiscrpcsvc.so $^ -lz $(shell pkg-config --libs protobuf-lite)
+	g++ -std=c++11 -shared -fPIC -o libwiscrpcsvc.so $^ -lz $(shell pkg-config --libs protobuf-lite)
 
 %.o: %.cpp wiscrpcsvc.h wiscRPCMsg.h proto_cpp
-	g++ -c -fPIC -o $@ $<
+	g++ -std=c++11 -c -fPIC -o $@ $<
 
 proto_cpp/%.pb.o: proto_cpp
-	g++ -c -fPIC -o $@ $(patsubst proto_cpp/%.pb.o,proto_cpp/%.pb.cc,$@)
+	g++ -std=c++11 -c -fPIC -o $@ $(patsubst proto_cpp/%.pb.o,proto_cpp/%.pb.cc,$@)
 
 proto_cpp: $(wildcard *.proto)
 	@mkdir -p proto_cpp/

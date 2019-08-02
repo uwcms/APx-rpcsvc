@@ -3,19 +3,20 @@ ifdef PETA_ROOTFS
 
 CXXFLAGS= -fomit-frame-pointer -pipe -fno-common -fno-builtin \
 	-Wall \
-	-march=armv7-a -mfpu=neon -mfloat-abi=softfp \
+	-march=armv7-a -mfpu=neon \
 	-mthumb-interwork -mtune=cortex-a9 \
 	-DEMBED -Dlinux -D__linux__ -Dunix -fPIC \
 	-I$(PETA_ROOTFS)/stage/usr/include \
 	-I$(PETA_ROOTFS)/stage/include \
-	-I$(PETA_ROOTFS)/libs/libmemsvc
+	-I$(PETA_ROOTFS)/libs/libmemsvc \
+	-std=c++11
 
 LDLIBS= -L$(PETA_ROOTFS)/targetroot/lib \
 	-L$(PETA_ROOTFS)/stage/lib \
 	-L$(PETA_ROOTFS)/targetroot/usr/lib \
 	-L$(PETA_ROOTFS)/stage/usr/lib
 
-CXX=arm-xilinx-linux-gnueabi-g++
+CXX=arm-linux-gnueabihf-g++
 endif
 
 APP = rpcsvc
