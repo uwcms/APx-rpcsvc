@@ -82,7 +82,7 @@ modules/optical.so: modules/optical.cpp $(MODULE_HEADERS)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lwisci2c
 
 modules/%.so: modules/%.cpp $(MODULE_HEADERS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $<
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lmemsvc
 
 packages: packages/module_dev.tbz2 packages/client_dev.tbz2
 
