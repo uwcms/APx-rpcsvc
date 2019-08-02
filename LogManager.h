@@ -6,8 +6,6 @@
 #include <deque>
 #include <stdio.h>
 
-#include <libmemsvc.h>
-
 std::string stdsprintf(const char *fmt, ...);
 
 class LogManager {
