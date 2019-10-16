@@ -17,6 +17,20 @@ void mread(const RPCMsg *request, RPCMsg *response) {
 	}
 }
 
+void mread_noaddrinc(const RPCMsg *request, RPCMsg *response) {
+	uint32_t count = request->get_word("count");
+	uint32_t addr = request->get_word("address");
+	uint32_t data[count];
+
+	if (memsvc_read_noaddrinc(memsvc, addr, count, data) == 0) {
+		response->set_word_array("data", data, count);
+	}
+	else {
+		response->set_string("error", memsvc_get_last_error(memsvc));
+		LOGGER->log_message(LogManager::INFO, stdsprintf("read memsvc error: %s", memsvc_get_last_error(memsvc)));
+	}
+}
+
 void mwrite(const RPCMsg *request, RPCMsg *response) {
 	uint32_t count = request->get_word_array_size("data");
 	uint32_t data[count];
@@ -24,6 +38,18 @@ void mwrite(const RPCMsg *request, RPCMsg *response) {
 	uint32_t addr = request->get_word("address");
 
 	if (memsvc_write(memsvc, addr, count, data) != 0) {
+		response->set_string("error", std::string("memsvc error: ")+memsvc_get_last_error(memsvc));
+		LOGGER->log_message(LogManager::INFO, stdsprintf("write memsvc error: %s", memsvc_get_last_error(memsvc)));
+	}
+}
+
+void mwrite_noaddrinc(const RPCMsg *request, RPCMsg *response) {
+	uint32_t count = request->get_word_array_size("data");
+	uint32_t data[count];
+	request->get_word_array("data", data);
+	uint32_t addr = request->get_word("address");
+
+	if (memsvc_write_noaddrinc(memsvc, addr, count, data) != 0) {
 		response->set_string("error", std::string("memsvc error: ")+memsvc_get_last_error(memsvc));
 		LOGGER->log_message(LogManager::INFO, stdsprintf("write memsvc error: %s", memsvc_get_last_error(memsvc)));
 	}
@@ -39,6 +65,8 @@ extern "C" {
 			return; // Do not register our functions, we depend on memsvc.
 		}
 		modmgr->register_method("memory", "read", mread);
+		modmgr->register_method("memory", "read_noaddrinc", mread_noaddrinc);
 		modmgr->register_method("memory", "write", mwrite);
+		modmgr->register_method("memory", "write_noaddrinc", mwrite_noaddrinc);
 	}
 }

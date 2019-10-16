@@ -47,7 +47,10 @@ const char *memsvc_get_last_error(memsvc_handle_t handle);
  */
 #define MEMSVC_MAX_WORDS	0x3FFFFFFF
 int memsvc_read(memsvc_handle_t handle, uint32_t addr, uint32_t words, uint32_t *data);
+int memsvc_read_noaddrinc(memsvc_handle_t handle, uint32_t addr, uint32_t words, uint32_t *data);
+
 int memsvc_write(memsvc_handle_t handle, uint32_t addr, uint32_t words, const uint32_t *data);
+int memsvc_write_noaddrinc(memsvc_handle_t handle, uint32_t addr, uint32_t words, const uint32_t *data);
 
 #ifdef __cplusplus
 }
