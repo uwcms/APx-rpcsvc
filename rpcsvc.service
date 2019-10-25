@@ -1,0 +1,10 @@
+[Unit]
+Description=The APx Gen 1 RPC Service
+
+[Service]
+Type=simple
+User=rpcsvc
+ExecStart=/usr/bin/rpcsvc
+
+[Install]
+WantedBy=multi-user.target

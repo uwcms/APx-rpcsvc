@@ -1,5 +1,6 @@
 /packages/*
-/modules/*.h
 /rpcsvc
+/proto_cpp/
 *.so
 *.o
+/*.rpm

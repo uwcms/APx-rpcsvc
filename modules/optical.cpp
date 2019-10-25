@@ -7,7 +7,10 @@
 
 #include "moduleapi.h"
 #include <libwisci2c.h>
-#include <cardconfig.h>
+/* This module can only build or function on a CTP7.
+ * It is disabled for now, but left as an example.
+ */
+// #include <cardconfig.h>
 
 memsvc_handle_t memsvc;
 

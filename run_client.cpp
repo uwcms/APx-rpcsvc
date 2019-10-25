@@ -1,6 +1,5 @@
 #define PROTOVER 3
 #define MIN_PROTOVER 3
-#define MODULES_DIR "/mnt/persistent/rpcmodules"
 #define LOG_PATH_FORMAT "syslog"
 // #define LOG_PATH_FORMAT "/var/log/rpcsvc/rpcsvc.%s.%u.log"
 #define LOG_OUTPUT_LEVEL LogManager::INFO
@@ -97,7 +96,7 @@ int run_client(int clientfd) {
 
 	ModuleManager modmgr;
 #ifdef LOAD_ALL_MODULES
-	if (modmgr.load_modules_dir(MODULES_DIR) < 0)
+	if (modmgr.load_modules_dir(RPCSVC_MODULES_DIR) < 0)
 		ERROR_DIE("Unable to load modules");
 #endif
 
@@ -155,7 +154,7 @@ int run_client(int clientfd) {
 			if (rpcreq.get_method() == "module.load") {
 				// This special case will be handled here.
 
-				if (!modmgr.load_module(MODULES_DIR, rpcreq.get_string("module"), rpcreq.get_string("module_version_key")))
+				if (!modmgr.load_module(RPCSVC_MODULES_DIR, rpcreq.get_string("module"), rpcreq.get_string("module_version_key")))
 					rpcrsp.set_string("rpcerror", "Unable to load the requested module.");
 			}
 			else

@@ -1,8 +1,8 @@
 # RPCsvc Module Development Package
 
-This package contains everything required to build modules for the CTP7 RPC
-service.  This document covers the structure of RPC modules as well as how to
-build them and install them on a CTP7.  It also includes some [important
+This package contains everything required to build modules for the APx Gen 1
+RPC service. This document covers the structure of RPC modules as well as how
+to build them and install them on a card. It also includes some [important
 points](#important-notes--caveats) to be aware of when using this package.
 
 ## Considerations for Module Design
@@ -182,28 +182,22 @@ the module development package directory will be compiled.
 
 ### Installing Modules
 
-To install your module on a CTP7, simply compile it and place it in
-`/mnt/persistent/rpcmodules`.  It will automatically be loadable by and
-available to any newly opened rpcsvc client connections.  Updates are handled in
-the same manner.  When a client sends a request to load a module for the first
-time, the version present on the card at that moment will be used for that
-session.
+To install your module on a card, simply compile it and place it in
+`/usr/lib/rpcsvc/`. It will automatically be loadable by and available to any
+newly opened rpcsvc client connections. Updates are handled in the same
+manner. When a client sends a request to load a module for the first time,
+the version present on the card at that moment will be used for that session.
 
 ## Important Notes & Caveats
 
-1.	Do not edit or replace modules provided by the core linux build.  They will
-	be reinstalled at card startup, overwriting your changes.  Your own
-	non-system modules however will remain on the persistent filesystem as
-	normal between reboots.
-
-2.	You do not need to and should not ever restart the rpcsvc dameon.  Other
+1.	You do not need to and should not ever restart the rpcsvc dameon.  Other
 	services are also depending on it as well.
 	
 	Closing your client connection will result the termination of the subprocess
 	serving your client, and you will receive a fresh subprocess upon
 	reconnection.  This should handle any situation involving an rpcsvc restart.
 
-3.	The files provided as a part of this package are a part of the rpcsvc
+2.	The files provided as a part of this package are a part of the rpcsvc
 	project and may be updated in the future.  Please do *not* make local
 	modifications to them, as having divergent sources *will* cause trouble in
 	the future.  Instead, request that any needed changes be made to the main

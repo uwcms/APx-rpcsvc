@@ -1,70 +1,19 @@
-ifndef PETALINUX
-PETA_ROOTFS=/afs/hep.wisc.edu/home/uwhepfpga/petalinux-v2013.10-final/CTP7/build/linux/rootfs
+CFLAGS := $(CFLAGS) -D 'RPCSVC_MODULES_DIR="$(RPCSVC_MODULES_DIR)"' -D 'RPCSVC_ACL_PATH="$(RPCSVC_ACL_PATH)"'
 
-CFLAGS= -fomit-frame-pointer -pipe -fno-common -fno-builtin \
-	-Wall \
-	-march=armv7-a -mfpu=neon -mfloat-abi=softfp \
-	-mthumb-interwork -mtune=cortex-a9 \
-	-DEMBED -Dlinux -D__linux__ -Dunix -fPIC \
-	-I$(PETA_ROOTFS)/stage/usr/include \
-	-I$(PETA_ROOTFS)/stage/include \
-	-I$(PETA_ROOTFS)/libs/libmemsvc
-
-LDLIBS= -L$(PETA_ROOTFS)/targetroot/lib \
-	-L$(PETA_ROOTFS)/stage/lib \
-	-L$(PETA_ROOTFS)/targetroot/usr/lib \
-	-L$(PETA_ROOTFS)/stage/usr/lib
-
-BUILDINFO_PATH=../../apps/buildinfo
-CXX=arm-xilinx-linux-gnueabi-g++
-else
-BUILDINFO_PATH=$$PROOT/components/apps/buildinfo
-
-include apps.common.mk
-include $(PETALINUX)/rpm.mk
-endif
-
-APP = rpcsvc
-
-# Add any other object files to this list below
-APP_OBJS = rpcsvc.o run_client.o ModuleManager.o wiscRPCMsg.o LogManager.o LockTools.o proto_cpp/rpcmsg.pb.o
-
-ifndef PETALINUX
 all: build modules packages
-else
-all: build modules packages install
-endif
 
-build: $(APP)
+build: rpcsvc
 
-$(APP): $(APP_OBJS)
-	$(CXX) $(LDFLAGS) -o $@ -rdynamic $(APP_OBJS) $(LDLIBS) -lmemsvc -ldl -l:libz.so.1 -lrt $(patsubst -lz,-l:libz.so.1,$(shell pkg-config --libs protobuf-lite))
+rpcsvc: rpcsvc.o run_client.o ModuleManager.o wiscRPCMsg.o LogManager.o LockTools.o proto_cpp/rpcmsg.pb.o
+	$(CXX) $(LDFLAGS) -o $@ -rdynamic $^ $(LDLIBS) -lmemsvc -ldl -l:libz.so.1 -lrt $(patsubst -lz,-l:libz.so.1,$(shell pkg-config --libs protobuf-lite))
 
 clean:
-	chmod -fR u+w *.elf *.gdb *.o *.so modules/*.so packages/ proto_cpp/ || true
-	-rm -rf $(APP) *.elf *.gdb *.o *.so modules/*.so packages/ proto_cpp/
-	for I in *.h; do rm -f modules/$$I; done
-
-ifdef PETALINUX
-install: $(APP) modules packages
-	rm -rf instroot *.rpm
-	mkdir instroot
-	TARGETDIR=$$(pwd)/instroot $(TARGETINST) -d $(APP) /bin/$(APP)
-	mkdir -p instroot/usr/local/rpcmodules.preinstall
-	rsync -vrh modules/*.so instroot/usr/local/rpcmodules.preinstall/
-	chmod -R 0755 instroot/usr/local/rpcmodules.preinstall
-	TARGETDIR=$$(pwd)/instroot $(TARGETINST) -d initpersist_rpcsvc.sh /etc/initpersist.d/50rpcsvc.sh
-	#
-	TARGETDIR=$$(pwd)/instroot $(TARGETINST) -p 0755 -d rpcsvc.sh /etc/init.d/rpcsvc
-	TARGETDIR=$$(pwd)/instroot $(TARGETINST) -d -s /etc/init.d/rpcsvc /etc/rcS.d/S70rpcsvc
-	#
-	TARGETDIR=$$(pwd)/instroot $(TARGETINST) -p 0644 -d packages/module_dev.tbz2 /usr/share/doc/rpcsvc/module_dev.tbz2
-	TARGETDIR=$$(pwd)/instroot $(TARGETINST) -p 0644 -d packages/client_dev.tbz2 /usr/share/doc/rpcsvc/client_dev.tbz2
-	$(call FPM_AUTOVER_CALL,rpcsvc,instroot)
-	$(call RPM_AUTOVER_INSTALL_CALL,rpcsvc)
-endif
+	chmod -fR u+w *.elf *.gdb *.o *.so modules/*.so packages/ proto_cpp/ *.rpm || true
+	-rm -rf rpcsvc *.elf *.gdb *.o *.so modules/*.so packages/ proto_cpp/ *.rpm
 
 %.o: %.cpp
+	@[ -n '$(RPCSVC_MODULES_DIR)' ] || (echo "Please define RPCSVC_MODULES_DIR."; exit 1)
+	@[ -n '$(RPCSVC_ACL_PATH)' ] || (echo "Please define RPCSVC_ACL_PATH."; exit 1)
 	$(CXX) -c $(CFLAGS) -o $@ $<
 
 wiscRPCMsg.o: wiscRPCMsg.cpp proto_cpp
@@ -79,20 +28,15 @@ proto_cpp: $(wildcard *.proto)
 
 modules: $(patsubst %.cpp, %.so, $(wildcard modules/*.cpp))
 
-modules/%.h: %.h
-	ln -s ../$< modules/$<
-
-MODULE_HEADERS = $(patsubst %.h, modules/%.h, $(wildcard *.h))
-
-modules/optical.so: modules/optical.cpp $(MODULE_HEADERS)
+modules/optical.so: modules/optical.cpp
 	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lwisci2c
 
-modules/%.so: modules/%.cpp $(MODULE_HEADERS)
+modules/%.so: modules/%.cpp
 	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $<
 
 packages: packages/module_dev.tbz2 packages/client_dev.tbz2
 
-packages/module_dev.tbz2: $(MODULE_HEADERS)
+packages/module_dev.tbz2:
 	# Initialize package build directory
 	chmod -fR u+w packages/rpcsvc_module_dev || true
 	rm -rf packages/rpcsvc_module_dev
@@ -123,4 +67,24 @@ packages/client_dev.tbz2: rpcmsg.proto $(wildcard libwiscrpcsvc-client/*.h) $(wi
 	# Generate package
 	tar -cjhf $@ --numeric-owner --owner=0 --group=0 -C packages/ rpcsvc_client_dev
 
-.PHONY: all build install image packages
+ifneq (x,x$(wildcard .git))
+RPM_PKGNAME := rpcsvc
+RPM_TOPDIR  := $(shell rpmbuild --eval %{_topdir})
+GIT_COMMIT_DATE := $(shell date -u +%Y%m%dT%H%M%S -d "$(shell git log --format=%ci -n1 HEAD | sed -re 's/(\S+) (\S+) (\S+)/\1T\2\3/')")
+RPM_VERSION := $(shell git describe --match='v[0-9]*.[0-9]*.[0-9]*' HEAD | sed -re 's/^v//;s/-([0-9]+)-(g[0-9a-f]{7})/.\1_$(GIT_COMMIT_DATE)_\2/')
+RPM_LIB_VERSION := $(shell git describe --match='v[0-9]*.[0-9]*.[0-9]*' HEAD | sed -re 's/^v//;s/-([0-9]+)-(g[0-9a-f]{7})//')
+RPM_GENERATED_SPEC := $(shell mktemp -t $(RPM_PKGNAME).XXXXXX.spec)
+rpm:
+	rm -f $(RPM_TOPDIR)/SOURCES/$(RPM_PKGNAME)-$(RPM_VERSION).tar.gz
+	mkdir -p $(RPM_TOPDIR)/SOURCES
+	git archive -9 --prefix $(RPM_PKGNAME)-$(RPM_VERSION)/ -o $(RPM_TOPDIR)/SOURCES/$(RPM_PKGNAME)-$(RPM_VERSION).tar.gz HEAD
+	echo '%define pkg_version $(RPM_VERSION)' > $(RPM_GENERATED_SPEC)
+	cat $(RPM_PKGNAME).spec >> $(RPM_GENERATED_SPEC)
+	echo | setsid rpmbuild -v -ba --sign --rmsource --clean -D 'pkg_version $(RPM_VERSION)' -D 'lib_version $(RPM_LIB_VERSION)' $(RPM_GENERATED_SPEC)
+	rm -f $(RPM_GENERATED_SPEC)
+	mv $(RPM_TOPDIR)/SRPMS/$(RPM_PKGNAME)-$(RPM_VERSION)-*.rpm ./
+	mv $(RPM_TOPDIR)/RPMS/*/$(RPM_PKGNAME)-$(RPM_VERSION)-*.rpm ./
+	mv $(RPM_TOPDIR)/RPMS/*/$(RPM_PKGNAME)-*-$(RPM_VERSION)-*.rpm ./ || true
+endif
+
+.PHONY: all build install clean rpm modules packages

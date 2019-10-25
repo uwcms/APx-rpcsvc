@@ -17,9 +17,7 @@
 
 #define MAX_CLIENTS 50
 
-#define IP_ACL_PATH "/mnt/persistent/config/rpcsvc.acl"
-
-#undef	NODAEMON
+#define	NODAEMON
 
 //#define dprintf(...) printf(__VA_ARGS__)
 #define dprintf(...)
@@ -65,7 +63,7 @@ static inline int ip2string(uint32_t ip, char *str, int strsize) // str must be 
 
 static bool authorize_ip(uint32_t ip) 
 {
-	FILE *ipacls = fopen(IP_ACL_PATH, "r");
+	FILE *ipacls = fopen(RPCSVC_ACL_PATH, "r");
 	if (!ipacls) {
 		return false; // This is a strict allow set.  Missing file = empty set.
 	}

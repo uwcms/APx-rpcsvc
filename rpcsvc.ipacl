@@ -1,0 +1,9 @@
+# This file contains the list of IP addresses permitted to access rpcsvc.
+# Each line contains an IP address in CIDR format.
+# Comments begin with # at any point.
+#
+# If you aren't familiar with CIDR, use /32 as the prefix length.
+#
+# Don't remove 127.0.0.1.
+127.0.0.1/32 # Local clients
+#192.168.0.0/16 # Lab private networks
