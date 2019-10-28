@@ -1,4 +1,4 @@
-#include "moduleapi.h"
+#include <rpcsvc/moduleapi.h>
 #include <libmemsvc.h>
 
 memsvc_handle_t memsvc;

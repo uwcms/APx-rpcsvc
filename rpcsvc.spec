@@ -12,12 +12,23 @@ Source0:        %{name}-%{pkg_version}.tar.gz
 
 BuildRequires:  protobuf-lite protobuf-lite-devel protobuf-c-compiler libz.so.1 libwisci2c.so.1
 BuildRequires:  systemd
-Requires:       protobuf-lite libz.so.1 libwisci2c.so.1
+Requires:       protobuf-lite libz.so.1
 
 %description
 The APx Gen 1 RPC Service provides a remote procedure call interface,
 allowing custom modules to be written to easily expose firmware-specific
 functionality to higher level subsystem control or monitoring applications.
+
+%package devel
+Summary:        The APx Gen 1 RPC Service module development resources
+
+%description devel
+The APx Gen 1 RPC Service provides a remote procedure call interface,
+allowing custom modules to be written to easily expose firmware-specific
+functionality to higher level subsystem control or monitoring applications.
+
+This package provides the headers required to develop service modules for the
+APx Gen 1 RPC Service.
 
 %prep
 %setup -q
@@ -38,6 +49,11 @@ done
 install -D -m 0644 rpcsvc.ipacl %{buildroot}/%{_sysconfdir}/rpcsvc.ipacl
 install -D -m 0644 rpcsvc.service %{buildroot}/%{_unitdir}/rpcsvc.service
 
+# -devel package
+for I in *.h; do
+	install -D -m 0644 "$I" %{buildroot}/%{_includedir}/rpcsvc/"$I"
+done
+
 %files
 %{_bindir}/rpcsvc
 %config(noreplace) %{_sysconfdir}/rpcsvc.ipacl
@@ -48,6 +64,9 @@ install -D -m 0644 rpcsvc.service %{buildroot}/%{_unitdir}/rpcsvc.service
 %doc packages/client_dev.tbz2
 %doc README.md
 
+%files devel
+%dir %{_includedir}/rpcsvc
+%{_includedir}/rpcsvc/*.h
 
 %pre
 getent group rpcsvc > /dev/null || /usr/sbin/groupadd -r rpcsvc || :

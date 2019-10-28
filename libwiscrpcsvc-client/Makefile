@@ -3,6 +3,8 @@ ifneq ($(PROTOBUF_CHECK),0)
 $(error Please install the package protobuf-lite-devel)
 endif
 
+CFLAGS := -std=gnu++11 $(CFLAGS)
+
 build: lib test
 
 test: rpctest
@@ -10,16 +12,16 @@ test: rpctest
 lib: libwiscrpcsvc.so
 
 rpctest: rpctest.cpp libwiscrpcsvc.so
-	g++ -o rpctest  rpctest.cpp -I. -L. -lwiscrpcsvc
+	g++ $(CFLAGS) -o rpctest  rpctest.cpp -I. -L. -lwiscrpcsvc
 
 libwiscrpcsvc.so: libwiscrpcsvc.o wiscRPCMsg.o proto_cpp/rpcmsg.pb.o
-	g++ -shared -fPIC -o libwiscrpcsvc.so $^ -lz $(shell pkg-config --libs protobuf-lite)
+	g++ $(CFLAGS) -shared -fPIC -o libwiscrpcsvc.so $^ -lz $(shell pkg-config --libs protobuf-lite)
 
 %.o: %.cpp wiscrpcsvc.h wiscRPCMsg.h proto_cpp
-	g++ -c -fPIC -o $@ $<
+	g++ $(CFLAGS) -c -fPIC -o $@ $<
 
 proto_cpp/%.pb.o: proto_cpp
-	g++ -c -fPIC -o $@ $(patsubst proto_cpp/%.pb.o,proto_cpp/%.pb.cc,$@)
+	g++ $(CFLAGS) -c -fPIC -o $@ $(patsubst proto_cpp/%.pb.o,proto_cpp/%.pb.cc,$@)
 
 proto_cpp: $(wildcard *.proto)
 	@mkdir -p proto_cpp/

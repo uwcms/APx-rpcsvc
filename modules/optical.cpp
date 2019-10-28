@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "moduleapi.h"
+#include <rpcsvc/moduleapi.h>
 #include <libwisci2c.h>
 /* This module can only build or function on a CTP7.
  * It is disabled for now, but left as an example.

@@ -1,9 +1,12 @@
 # RPCsvc Module Development Package
 
-This package contains everything required to build modules for the APx Gen 1
+This package contains example modules and a makefile for the APx Gen 1
 RPC service. This document covers the structure of RPC modules as well as how
 to build them and install them on a card. It also includes some [important
 points](#important-notes--caveats) to be aware of when using this package.
+
+You can find the development headers on your card in `/usr/include/rpcsvc`
+after installing the `rpcsvc-devel` package.
 
 ## Considerations for Module Design
 
@@ -11,7 +14,7 @@ points](#important-notes--caveats) to be aware of when using this package.
 
 	The implication of this is that it is not possible to use the pthread_mutex
 	functions for locking or mutual exclusion.  Use the provided tools in
-	LockTools.h instead.
+	`LockTools.h` instead.
 
 2.	The [module_version_key](#module_version_key) described below should be kept
 	up to date to prevent confusion or disruption when incompatible changes are
@@ -31,12 +34,12 @@ function and set of module specific data.
 
 ### RPC Methods
 
-RPC methods are defined as functions which take a `RPCMsg` request and `RPCMsg`
-response as parameters.  These provide access to input and output data for the
-RPC request that the function services.  Methods such as `get_word` and
-`set_word` can be used to access the data in these objects.  Please review
-`RPCMsg.h` for a list of available data access methods, or reference
-`rpctest.cpp` for a full test case.
+RPC methods are defined as functions which take a `RPCMsg` request and
+`RPCMsg` response as parameters. These provide access to input and output
+data for the RPC request that the function services. Methods such as
+`get_word` and `set_word` can be used to access the data in these objects.
+Please review `wiscRPCMsg.h` () for a list of available data access methods,
+or reference `rpctest.cpp` for a full test case.
 
 Errors should be reported as a response body field which is checked for on by
 the RPC client.
@@ -60,9 +63,7 @@ void mread(const RPCMsg *request, RPCMsg *response) {
 ### Logging
 
 The RPC server provides a logging facility to be used in RPC modules, which is
-configured to send their output to the standard unix syslog facility.  See
-the _Network Configuration_ document for more information on how this log data
-is handled.
+configured to send their output to the standard unix syslog facility.
 
 There is a global LOGGER object accessible to modules to record log messages.
 It has two primary functions that are relevant to module developers:
@@ -174,11 +175,19 @@ and are subsequently made available for clients to execute.
 
 ### Building Modules
 
-Modules may be built using the Makefile provided in this package.  Note that you
-will likely need to update the `PETA_STAGE` variable to point to an appropriate
-stage directory containing the relevant headers and libraries.  Once this has
-been set up, you should simply be able to run `make` and all modules present in
-the module development package directory will be compiled.
+Modules may be built using the Makefile provided in this package.
+
+You will need to perform this operation on a card with `g++`, etc. installed,
+as well as the `rpcsvc-devel` package, which contains the module API headers.
+
+Once you have an appropriate environment, simply type `make` and all modules
+present in the module development package directory will be compiled.
+
+```sh
+sudo yum groupinstall 'Development Tools'
+sudo yum install rpcsvc-devel
+make
+```
 
 ### Installing Modules
 
@@ -198,9 +207,11 @@ the version present on the card at that moment will be used for that session.
 	reconnection.  This should handle any situation involving an rpcsvc restart.
 
 2.	The files provided as a part of this package are a part of the rpcsvc
-	project and may be updated in the future.  Please do *not* make local
-	modifications to them, as having divergent sources *will* cause trouble in
-	the future.  Instead, request that any needed changes be made to the main
-	project source.  Please review the file `RPCSVC_MANIFEST` for details on
-	this package including version information and a list of included files that
-	originate from the rpcsvc core project.
+	project and may be updated in the future. Please do *not* make local
+	modifications to them, as having divergent sources *will* cause trouble
+	in the future. Instead, use a different name for your own modules, or
+	submit a pull request at https://github.com/uwcms/APx-rpcsvc to have any
+	necessary changes included in the main project. Please review the file
+	`RPCSVC_MANIFEST` for details on this package including version
+	information and a list of included files that originate from the rpcsvc
+	core project.

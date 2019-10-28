@@ -29,10 +29,10 @@ proto_cpp: $(wildcard *.proto)
 modules: $(patsubst %.cpp, %.so, $(wildcard modules/*.cpp))
 
 modules/optical.so: modules/optical.cpp
-	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lwisci2c
+	$(CXX) $(CFLAGS) $(LDFLAGS) -Imodules/ -fPIC -shared -o $@ $< -lwisci2c
 
 modules/%.so: modules/%.cpp
-	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $<
+	$(CXX) $(CFLAGS) $(LDFLAGS) -Imodules/ -fPIC -shared -o $@ $<
 
 packages: packages/module_dev.tbz2 packages/client_dev.tbz2
 
@@ -42,7 +42,7 @@ packages/module_dev.tbz2:
 	rm -rf packages/rpcsvc_module_dev
 	mkdir -p packages/rpcsvc_module_dev
 	# Install package files
-	cp -rL modules/*.h modules/*.cpp modules/Makefile modules/README.md packages/rpcsvc_module_dev/
+	cp -rL modules/*.cpp modules/Makefile modules/README.md packages/rpcsvc_module_dev/
 	#-grip packages/rpcsvc_module_dev/README.md --export
 	# Generate package version data
 	./gen_package_version.sh packages/rpcsvc_module_dev >> packages/rpcsvc_module_dev/RPCSVC_MANIFEST
