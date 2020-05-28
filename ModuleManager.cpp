@@ -34,14 +34,19 @@ int ModuleManager::load_modules_dir(std::string dir)
 		if (module_activity_color)
 			this->modload_activity_color = *static_cast<int*>(module_activity_color);
 
+		void *module_led_id = dlsym(mod, "module_led_id");
+		if (module_led_id)
+			this->modload_led_id = *static_cast<int*>(module_led_id);
+
 		LOGGER->log_message(LogManager::DEBUG, stdsprintf("Initializing loaded module %s/%s", dir.c_str(), ent->d_name));
-		LOGGER->push_active_service(ent->d_name);
+		LOGGER->push_active_service(ent->d_name, this->modload_activity_color, this->modload_led_id);
 		reinterpret_cast<void (*)(ModuleManager*)>(initfunc)(this);
 		LOGGER->pop_active_service(ent->d_name);
 		this->modulestate[dir+"/"+ent->d_name] = 1;
 		LOGGER->log_message(LogManager::DEBUG, stdsprintf("Completed module initialization for %s/%s", dir.c_str(), ent->d_name));
 
 		this->modload_activity_color = 0;
+		this->modload_led_id = 0;
 		errno = 0; // for next readdir();
 	}
 	if (errno) {
@@ -95,21 +100,26 @@ bool ModuleManager::load_module(std::string dir, std::string mod_name, std::stri
 	if (module_activity_color)
 		this->modload_activity_color = *static_cast<int*>(module_activity_color);
 
+	void *module_led_id = dlsym(mod, "module_led_id");
+	if (module_led_id)
+		this->modload_led_id = *static_cast<int*>(module_led_id);
+
 	LOGGER->log_message(LogManager::DEBUG, stdsprintf("Initializing loaded module %s/%s.so", dir.c_str(), mod_name.c_str()));
-	LOGGER->push_active_service(mod_name);
+	LOGGER->push_active_service(mod_name, this->modload_activity_color, this->modload_led_id);
 	reinterpret_cast<void (*)(ModuleManager*)>(initfunc)(this);
 	LOGGER->pop_active_service(mod_name);
 	this->modulestate[dir+"/"+mod_name+".so"] = 1;
 	LOGGER->log_message(LogManager::DEBUG, stdsprintf("Completed module initialization for %s/%s.so", dir.c_str(), mod_name.c_str()));
 
 	this->modload_activity_color = 0;
+	this->modload_led_id = 0;
 	return true;
 }
 
 void ModuleManager::register_method(std::string service, std::string method, rpc_method_t func)
 {
 	this->methods.insert(
-			std::pair<std::string, ModuleMethod>(service+std::string(".")+method, ModuleMethod(func, this->modload_activity_color))
+			std::pair<std::string, ModuleMethod>(service+std::string(".")+method, ModuleMethod(func, this->modload_activity_color, this->modload_led_id))
 			);
 	LOGGER->log_message(LogManager::DEBUG, stdsprintf("Registered method %s.%s", service.c_str(), method.c_str()));
 }

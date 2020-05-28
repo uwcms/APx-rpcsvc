@@ -15,11 +15,13 @@ class ModuleManager {
 			public:
 				rpc_method_t method;
 				int activity_color;
-				ModuleMethod(rpc_method_t method, int activity_color) : method(method), activity_color(activity_color) { };
+				int led_id;
+				ModuleMethod(rpc_method_t method, int activity_color, int led_id) : method(method), activity_color(activity_color), led_id(led_id) { };
 		};
 		std::map<std::string, ModuleMethod> methods;
 		std::map<std::string, int> modulestate;
 		int modload_activity_color;
+		int modload_led_id;
 	public:
 		ModuleManager() { };
 		int load_modules_dir(std::string dir);

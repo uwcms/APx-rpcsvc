@@ -6,8 +6,6 @@
 #include <deque>
 #include <stdio.h>
 
-#include <libmemsvc.h>
-
 std::string stdsprintf(const char *fmt, ...);
 
 class LogManager {
@@ -29,7 +27,8 @@ class LogManager {
 			public:
 				std::string service;
 				int activity_color;
-				LogContext(std::string service, int activity_color = 0) : service(service), activity_color(activity_color) { };
+				int led_id;
+				LogContext(std::string service, int activity_color = 0, int led_id = 0) : service(service), activity_color(activity_color), led_id(led_id) { };
 		};
 		std::deque<LogContext> active_service;
 		enum LogLevel output_level;
@@ -61,16 +60,16 @@ class LogManager {
 		 */
 		// if logpathf is "syslog", syslog() calls will be used instead.
 		LogManager(std::string logpathf, LogLevel output_level);
-		void push_active_service(std::string service, int activity_color = -1);
+		void push_active_service(std::string service, int activity_color = -1, int led_id = -1);
 		void pop_active_service(std::string service);
 
 		class ScopeService {
 			public:
 				LogManager *logmgr;
 				const std::string service;
-				ScopeService(LogManager *logmgr, std::string service, int activity_color = -1)
+				ScopeService(LogManager *logmgr, std::string service, int activity_color = -1, int led_id = -1)
 					: logmgr(logmgr), service(service) {
-						logmgr->push_active_service(this->service, activity_color);
+						logmgr->push_active_service(this->service, activity_color, led_id);
 					};
 				~ScopeService() {
 					if (logmgr)

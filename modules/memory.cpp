@@ -1,19 +1,20 @@
 #include <rpcsvc/moduleapi.h>
-#include <libmemsvc.h>
+#include <libeasymem.h>
+#include <errno.h>
 
-memsvc_handle_t memsvc;
+static void *memrange = NULL;
 
 void mread(const RPCMsg *request, RPCMsg *response) {
 	uint32_t count = request->get_word("count");
 	uint32_t addr = request->get_word("address");
 	uint32_t data[count];
 
-	if (memsvc_read(memsvc, addr, count, data) == 0) {
+	if (easymem_saferead32(memrange, addr, count, data, 1) == 0) {
 		response->set_word_array("data", data, count);
 	}
 	else {
-		response->set_string("error", memsvc_get_last_error(memsvc));
-		LOGGER->log_message(LogManager::INFO, stdsprintf("read memsvc error: %s", memsvc_get_last_error(memsvc)));
+		response->set_string("error", stdsprintf("Easymem error: errno %d", errno));
+		LOGGER->log_message(LogManager::INFO, stdsprintf("read easymem error: %d", errno));
 	}
 }
 
@@ -23,20 +24,21 @@ void mwrite(const RPCMsg *request, RPCMsg *response) {
 	request->get_word_array("data", data);
 	uint32_t addr = request->get_word("address");
 
-	if (memsvc_write(memsvc, addr, count, data) != 0) {
-		response->set_string("error", std::string("memsvc error: ")+memsvc_get_last_error(memsvc));
-		LOGGER->log_message(LogManager::INFO, stdsprintf("write memsvc error: %s", memsvc_get_last_error(memsvc)));
+	if (easymem_safewrite32(memrange, addr, count, data, 1) != 0) {
+		response->set_string("error", stdsprintf("Easymem error: errno %d", errno));
+		LOGGER->log_message(LogManager::INFO, stdsprintf("write easymem error: errno %d", errno));
 	}
 }
 
 extern "C" {
-	const char *module_version_key = "memory v1.0.1";
-	int module_activity_color = 4;
+	const char *module_version_key = "memory v1.0.2";
+	int module_activity_color = 0xff0066;
+	int module_led_id = 0;
 	void module_init(ModuleManager *modmgr) {
-		if (memsvc_open(&memsvc) != 0) {
-			LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to connect to memory service: %s", memsvc_get_last_error(memsvc)));
+		if (easymem_map_uio(&memrange, "/dev/test_bram", 0, 0x2000, 0) != 0) {
+			LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to map UIO /dev/test_bram: errno %d", errno));
 			LOGGER->log_message(LogManager::ERROR, "Unable to load module");
-			return; // Do not register our functions, we depend on memsvc.
+			return; // Do not register our functions, we depend on that mapping.
 		}
 		modmgr->register_method("memory", "read", mread);
 		modmgr->register_method("memory", "write", mwrite);

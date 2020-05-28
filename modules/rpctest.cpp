@@ -40,7 +40,8 @@ void rpcmsg_feature(const RPCMsg *request, RPCMsg *response) {
 
 extern "C" {
 	const char *module_version_key = "rpctest v1.0.1";
-	int module_activity_color = 2;
+	int module_activity_color = 0xff5050;
+	int module_led_id = 0;
 	void module_init(ModuleManager *modmgr) {
 		modmgr->register_method("rpctest", "rpcmsg_feature", rpcmsg_feature);
 	}

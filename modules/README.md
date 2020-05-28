@@ -50,12 +50,12 @@ void mread(const RPCMsg *request, RPCMsg *response) {
 	uint32_t addr = request->get_word("address");
 	uint32_t data[count];
 
-	if (memsvc_read(memsvc, addr, count, data) == 0) {
+	if (easymem_saferead32(memrange, addr, count, data, 1) == 0) {
 		response->set_word_array("data", data, count);
 	}
 	else {
-		response->set_string("error", memsvc_get_last_error(memsvc));
-		LOGGER->log_message(LogManager::INFO, stdsprintf("read memsvc error: %s", memsvc_get_last_error(memsvc)));
+		response->set_string("error", stdsprintf("Easymem error: errno %d", errno));
+		LOGGER->log_message(LogManager::INFO, stdsprintf("read easymem error: %d", errno));
 	}
 }
 ```
@@ -104,9 +104,10 @@ The majority of debug or generally irrelevant messages should be output as
 
 #### indicate_activity
 
-`indicate_activity` requires no parameters and will trigger a flash on the
-front panel activity indicator LED.  The color of this flash is determined by
-the module parameter `module_activity_color`.  See below for more details.
+`indicate_activity` requires no parameters and will trigger a flash on the front
+panel activity indicator LED.  The color of this flash is determined by the
+module parameter `module_activity_color`, and the LED used is determined by the
+module parameter `module_led_id`.  See below for more details.
 
 ```cpp
 LOGGER->indicate_activity();
@@ -122,13 +123,14 @@ proper linking.
 
 ```cpp
 extern "C" {
-	const char *module_version_key = "memory v1.0.0";
-	int module_activity_color = 0;
+	const char *module_version_key = "memory v1.0.2";
+	int module_activity_color = 0xff0066;
+	int module_led_id = 0;
 	void module_init(ModuleManager *modmgr) {
-		if (memsvc_open(&memsvc) != 0) {
-			LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to connect to memory service: %s", memsvc_get_last_error(memsvc)));
+		if (easymem_map_uio(&memrange, "/dev/test_bram", 0, 0x2000, 0) != 0) {
+			LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to map UIO /dev/test_bram: errno %d", errno));
 			LOGGER->log_message(LogManager::ERROR, "Unable to load module");
-			return; // Do not register our functions, we depend on memsvc.
+			return; // Do not register our functions, we depend on that mapping.
 		}
 		modmgr->register_method("memory", "read", mread);
 		modmgr->register_method("memory", "write", mwrite);
@@ -148,14 +150,16 @@ this value up to date as you make changes to a module to prevent confusion in
 the event that the wrong module version is loaded on a particular card or client
 software expects different behavior from the module.
 
-##### module_activity_color
+##### module_activity_color & module_led_id
 
-All modules contain a `module_activity_color` int which determines the color of
-LED activity indicator flashes for that module.  Any module is free to use the
-value '0' which will not produce any activity indication.
+All modules contain a `module_activity_color` int which specifies the color of
+LED activity indicator flashes for that module as a standard hex color code.
+Any module is free to use the value '0' which will not produce any activity
+indication.
 
-*Please request the assignment of a specific value for your module.*
-The valid range of values is 0-8.
+*Please coordinate the color value chosen for your module to avoid conflicts.*
+
+All modules contain a `module_led_id` int which specifies which LED activity indicator flashes for that module are sent to.
 
 #### Initialization Function
 
@@ -201,7 +205,7 @@ the version present on the card at that moment will be used for that session.
 
 1.	You do not need to and should not ever restart the rpcsvc dameon.  Other
 	services are also depending on it as well.
-	
+
 	Closing your client connection will result the termination of the subprocess
 	serving your client, and you will receive a fresh subprocess upon
 	reconnection.  This should handle any situation involving an rpcsvc restart.

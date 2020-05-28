@@ -2,10 +2,7 @@ all: modules
 
 modules: $(patsubst %.cpp, %.so, $(wildcard *.cpp))
 
-optical.so: optical.cpp 
-	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $< -lwisci2c
-
-%.so: %.cpp 
+%.so: %.cpp
 	$(CXX) $(CFLAGS) $(LDFLAGS) -fPIC -shared -o $@ $<
 
 clean:
