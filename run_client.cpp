@@ -8,28 +8,32 @@
  * The Zynq only has so much RAM, and we serve many clients.
  * Let me know if you need this larger for any reason.
  */
-#define MAX_MSGLEN (1024*1024*8)
+#define MAX_MSGLEN (1024 * 1024 * 8)
 
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h>
+#include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <unistd.h>
 // <zlib.h>
 extern "C" {
-	extern unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned int len);
+extern unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned int len);
 };
 // </zlib.h>
 
-#include "wiscRPCMsg.h"
 #include "ModuleManager.h"
+#include "wiscRPCMsg.h"
 using namespace wisc;
 
 // #define ERROR_DIE(...) return 1
 
 //#define dprintf(...) printf(__VA_ARGS__)
 #define dprintf(...)
-#define ERROR_DIE(...) do { LOGGER->log_message(LogManager::ERROR, stdsprintf(__VA_ARGS__)); return 1; } while (0)
+#define ERROR_DIE(...)                                                   \
+	do {                                                                 \
+		LOGGER->log_message(LogManager::ERROR, stdsprintf(__VA_ARGS__)); \
+		return 1;                                                        \
+	} while (0)
 
 #if 0
 ssize_t timeout_read(int fd, void *buf, size_t count, int timeout)
@@ -59,11 +63,10 @@ ssize_t timeout_read(int fd, void *buf, size_t count, int timeout)
 }
 #endif
 
-std::string get_ip4_string(int socket)
-{
+std::string get_ip4_string(int socket) {
 	struct sockaddr_in remote_address;
 	socklen_t remote_address_len = sizeof(remote_address);
-	if (getpeername(socket, reinterpret_cast<sockaddr*>(&remote_address), &remote_address_len) < 0)
+	if (getpeername(socket, reinterpret_cast<sockaddr *>(&remote_address), &remote_address_len) < 0)
 		return "";
 	char buf[INET_ADDRSTRLEN];
 	memset(buf, 0, INET_ADDRSTRLEN);
@@ -130,7 +133,7 @@ int run_client(int clientfd) {
 		uint32_t bytesread = 0;
 		char reqmsg[reqlen];
 		while (bytesread < reqlen) {
-			int rv = read(clientfd, reqmsg+bytesread, reqlen-bytesread);
+			int rv = read(clientfd, reqmsg + bytesread, reqlen - bytesread);
 			if (rv <= 0)
 				ERROR_DIE("Error reading request message from client");
 			bytesread += rv;
@@ -196,7 +199,7 @@ int run_client(int clientfd) {
 			ERROR_DIE("Unable to write request CRC32 to client");
 		uint32_t bytes_written = 0;
 		while (bytes_written < rsp.size()) {
-			int rv = write(clientfd, rsp.data()+bytes_written, rsp.size()-bytes_written);
+			int rv = write(clientfd, rsp.data() + bytes_written, rsp.size() - bytes_written);
 			if (rv < 0)
 				ERROR_DIE("Error writing response message to client");
 			bytes_written += rv;

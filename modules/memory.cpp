@@ -1,6 +1,6 @@
-#include <rpcsvc/moduleapi.h>
-#include <libeasymem.h>
 #include <errno.h>
+#include <libeasymem.h>
+#include <rpcsvc/moduleapi.h>
 
 static void *memrange = NULL;
 
@@ -31,16 +31,16 @@ void mwrite(const RPCMsg *request, RPCMsg *response) {
 }
 
 extern "C" {
-	const char *module_version_key = "memory v1.0.2";
-	int module_activity_color = 0xff0066;
-	int module_led_id = 0;
-	void module_init(ModuleManager *modmgr) {
-		if (easymem_map_uio(&memrange, "/dev/test_bram", 0, 0x2000, 0) != 0) {
-			LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to map UIO /dev/test_bram: errno %d", errno));
-			LOGGER->log_message(LogManager::ERROR, "Unable to load module");
-			return; // Do not register our functions, we depend on that mapping.
-		}
-		modmgr->register_method("memory", "read", mread);
-		modmgr->register_method("memory", "write", mwrite);
+const char *module_version_key = "memory v1.0.2";
+int module_activity_color = 0xff0066;
+int module_led_id = 0;
+void module_init(ModuleManager *modmgr) {
+	if (easymem_map_uio(&memrange, "/dev/test_bram", 0, 0x2000, 0) != 0) {
+		LOGGER->log_message(LogManager::ERROR, stdsprintf("Unable to map UIO /dev/test_bram: errno %d", errno));
+		LOGGER->log_message(LogManager::ERROR, "Unable to load module");
+		return; // Do not register our functions, we depend on that mapping.
 	}
+	modmgr->register_method("memory", "read", mread);
+	modmgr->register_method("memory", "write", mwrite);
+}
 }

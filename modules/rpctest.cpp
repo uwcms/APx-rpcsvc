@@ -13,18 +13,17 @@ void rpcmsg_feature(const RPCMsg *request, RPCMsg *response) {
 	}
 
 	uint32_t testword = request->get_word("testword");
-	response->set_word("testword", testword+1);
+	response->set_word("testword", testword + 1);
 
 	uint32_t arraysize = request->get_word_array_size("testwordarray");
 	uint32_t data[arraysize];
 	request->get_word_array("testwordarray", data);
 	for (uint32_t i = 0; i < arraysize; i++)
-		data[i]+=i;
+		data[i] += i;
 	response->set_word_array("testwordarray", data, arraysize);
 
-
 	std::string teststring = request->get_string("teststring");
-	response->set_string("teststring", teststring+"? Hello there!");
+	response->set_string("teststring", teststring + "? Hello there!");
 
 	arraysize = request->get_string_array_size("teststringarray");
 	std::vector<std::string> stringarray = request->get_string_array("teststringarray");
@@ -39,10 +38,10 @@ void rpcmsg_feature(const RPCMsg *request, RPCMsg *response) {
 }
 
 extern "C" {
-	const char *module_version_key = "rpctest v1.0.1";
-	int module_activity_color = 0xff5050;
-	int module_led_id = 0;
-	void module_init(ModuleManager *modmgr) {
-		modmgr->register_method("rpctest", "rpcmsg_feature", rpcmsg_feature);
-	}
+const char *module_version_key = "rpctest v1.0.1";
+int module_activity_color = 0xff5050;
+int module_led_id = 0;
+void module_init(ModuleManager *modmgr) {
+	modmgr->register_method("rpctest", "rpcmsg_feature", rpcmsg_feature);
+}
 }

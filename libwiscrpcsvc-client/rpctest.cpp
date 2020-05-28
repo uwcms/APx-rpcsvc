@@ -4,10 +4,9 @@
 #include <wiscrpcsvc.h>
 using namespace wisc;
 
-#undef	MEMORY_TEST
+#undef MEMORY_TEST
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	RPCSvc rpc;
 	try {
 		rpc.connect(argv[1]);
@@ -21,25 +20,26 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-#define STANDARD_CATCH \
-	catch (RPCSvc::NotConnectedException &e) { \
+#define STANDARD_CATCH                                                   \
+	catch (RPCSvc::NotConnectedException & e) {                          \
 		printf("Caught NotConnectedException: %s\n", e.message.c_str()); \
-		return 1; \
-	} \
-	catch (RPCSvc::RPCErrorException &e) { \
-		printf("Caught RPCErrorException: %s\n", e.message.c_str()); \
-		return 1; \
-	} \
-	catch (RPCSvc::RPCException &e) { \
-		printf("Caught exception: %s\n", e.message.c_str()); \
-		return 1; \
+		return 1;                                                        \
+	}                                                                    \
+	catch (RPCSvc::RPCErrorException & e) {                              \
+		printf("Caught RPCErrorException: %s\n", e.message.c_str());     \
+		return 1;                                                        \
+	}                                                                    \
+	catch (RPCSvc::RPCException & e) {                                   \
+		printf("Caught exception: %s\n", e.message.c_str());             \
+		return 1;                                                        \
 	}
 
-#define ASSERT(x) do { \
-		if (!(x)) { \
+#define ASSERT(x)                                                      \
+	do {                                                               \
+		if (!(x)) {                                                    \
 			printf("Assertion Failed on line %u: %s\n", __LINE__, #x); \
-			return 1; \
-		} \
+			return 1;                                                  \
+		}                                                              \
 	} while (0)
 
 	try {
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	ASSERT(rsp.get_word_array_size("data") == 1);
 	rsp.get_word_array("data", &result);
 
-	uint32_t writedata = result+1;
+	uint32_t writedata = result + 1;
 	req = RPCMsg("memory.write");
 	req.set_word("address", 0x60000000);
 	req.set_word_array("data", &writedata, 1);
@@ -85,8 +85,8 @@ int main(int argc, char *argv[])
 
 	req = RPCMsg("rpctest.rpcmsg_feature");
 	req.set_word("testword", 0x12345678); // expect testword+1
-	uint32_t wordarray[4] = { 0xc0ffee01, 0xfeedf00d, 0xdeadbeef, 0xecadecad };
-	req.set_word_array("testwordarray", wordarray, sizeof(wordarray)/sizeof(uint32_t)); // expect word[i]++
+	uint32_t wordarray[4] = {0xc0ffee01, 0xfeedf00d, 0xdeadbeef, 0xecadecad};
+	req.set_word_array("testwordarray", wordarray, sizeof(wordarray) / sizeof(uint32_t)); // expect word[i]++
 
 	req.set_string("teststring", "Seraphim"); // expect "Seraphim? Hello there!"
 	std::vector<std::string> stringarray;
@@ -104,17 +104,17 @@ int main(int argc, char *argv[])
 		ASSERT(rsp.get_key_exists("testword"));
 		ASSERT(!rsp.get_key_exists("nonexistent"));
 
-		ASSERT(rsp.get_word("testword") == 0x12345678+1);
+		ASSERT(rsp.get_word("testword") == 0x12345678 + 1);
 		ASSERT(rsp.get_word_array_size("testwordarray") == 4);
 		uint32_t wordarray_out[4];
 		rsp.get_word_array("testwordarray", wordarray_out);
 		for (int i = 0; i < 4; i++)
-			ASSERT(wordarray_out[i] == wordarray[i]+i);
+			ASSERT(wordarray_out[i] == wordarray[i] + i);
 
 		ASSERT(rsp.get_string_array_size("teststringarray") == stringarray.size());
 		std::vector<std::string> stringarray_out = rsp.get_string_array("teststringarray");
 		for (int i = 0; i < stringarray_out.size(); i++)
-			ASSERT(stringarray_out[i] == stringarray[i]+"? Hello there!");
+			ASSERT(stringarray_out[i] == stringarray[i] + "? Hello there!");
 
 		uint32_t binarydata_out_len = rsp.get_binarydata_size("testblob");
 		char binarydata_out[binarydata_out_len];

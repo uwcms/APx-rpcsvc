@@ -28,8 +28,6 @@ int namedlock_lock(int lockid);
 int namedlock_trylock(int lockid);
 int namedlock_unlock(int lockid);
 
-
-
 /* These functions act as flags for long term lockouts.
  *
  * They are NOT mutexes!  They do NOT provide mutual exclusion!

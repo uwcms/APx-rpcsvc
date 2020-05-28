@@ -1,17 +1,16 @@
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <errno.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <sys/select.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 // <zlib.h>
 extern "C" {
-	extern unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned int len);
+extern unsigned long crc32(unsigned long crc, const unsigned char *buf, unsigned int len);
 };
 // </zlib.h>
 
@@ -21,15 +20,15 @@ using namespace wisc;
 #define PROTOVER 3
 #define MIN_PROTOVER 3
 
-#undef	DEBUG_LIBRPCSVC
-#ifdef	DEBUG_LIBRPCSVC
+#undef DEBUG_LIBRPCSVC
+#ifdef DEBUG_LIBRPCSVC
 #include <stdio.h>
 #define dprintf(...) printf(__VA_ARGS__)
 #else
 #define dprintf(...)
 #endif
 
-ssize_t timeout_recv(int fd, void *buf, size_t count, int timeout_seconds=30) {
+ssize_t timeout_recv(int fd, void *buf, size_t count, int timeout_seconds = 30) {
 	fd_set fds;
 	size_t bytesread = 0;
 	while (bytesread < count) {
@@ -38,7 +37,7 @@ ssize_t timeout_recv(int fd, void *buf, size_t count, int timeout_seconds=30) {
 		struct timeval tvtimeout;
 		tvtimeout.tv_sec = timeout_seconds;
 		tvtimeout.tv_usec = 0;
-		int rv = select(fd+1, &fds, NULL, NULL, &tvtimeout);
+		int rv = select(fd + 1, &fds, NULL, NULL, &tvtimeout);
 		if (rv < 0) {
 			if (errno == EINTR)
 				continue;
@@ -46,7 +45,7 @@ ssize_t timeout_recv(int fd, void *buf, size_t count, int timeout_seconds=30) {
 		}
 		if (rv == 0)
 			return bytesread;
-		rv = recv(fd, reinterpret_cast<uint8_t*>(buf)+bytesread, count-bytesread, MSG_DONTWAIT);
+		rv = recv(fd, reinterpret_cast<uint8_t *>(buf) + bytesread, count - bytesread, MSG_DONTWAIT);
 		if (rv < 0) {
 			if (errno == EINTR || errno == EAGAIN)
 				continue;
@@ -59,7 +58,7 @@ ssize_t timeout_recv(int fd, void *buf, size_t count, int timeout_seconds=30) {
 	return bytesread;
 }
 
-ssize_t timeout_send(int fd, const void *buf, size_t count, int timeout_seconds=30) {
+ssize_t timeout_send(int fd, const void *buf, size_t count, int timeout_seconds = 30) {
 	fd_set fds;
 	size_t byteswritten = 0;
 	while (byteswritten < count) {
@@ -68,7 +67,7 @@ ssize_t timeout_send(int fd, const void *buf, size_t count, int timeout_seconds=
 		struct timeval tvtimeout;
 		tvtimeout.tv_sec = timeout_seconds;
 		tvtimeout.tv_usec = 0;
-		int rv = select(fd+1, NULL, &fds, NULL, &tvtimeout);
+		int rv = select(fd + 1, NULL, &fds, NULL, &tvtimeout);
 		if (rv < 0) {
 			if (errno == EINTR || errno == EAGAIN)
 				continue;
@@ -76,7 +75,7 @@ ssize_t timeout_send(int fd, const void *buf, size_t count, int timeout_seconds=
 		}
 		if (rv == 0)
 			return byteswritten;
-		rv = send(fd, reinterpret_cast<const uint8_t*>(buf)+byteswritten, count-byteswritten, MSG_DONTWAIT);
+		rv = send(fd, reinterpret_cast<const uint8_t *>(buf) + byteswritten, count - byteswritten, MSG_DONTWAIT);
 		if (rv < 0) {
 			if (errno == EINTR || errno == EAGAIN)
 				continue;
@@ -109,13 +108,13 @@ void RPCSvc::connect(std::string host, uint16_t port) {
 
 	this->fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (this->fd < 0)
-		throw ConnectionFailedException(std::string("Unable to create socket: ")+stdstrerror(errno));
+		throw ConnectionFailedException(std::string("Unable to create socket: ") + stdstrerror(errno));
 
-	if (::connect(this->fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)  {
+	if (::connect(this->fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
 		int err = errno;
 		close(this->fd);
 		this->fd = -1;
-		throw ConnectionFailedException(std::string("Unable to connect: ")+stdstrerror(err));
+		throw ConnectionFailedException(std::string("Unable to connect: ") + stdstrerror(err));
 	}
 
 	uint32_t protover;
@@ -124,7 +123,7 @@ void RPCSvc::connect(std::string host, uint16_t port) {
 		close(this->fd);
 		this->fd = -1;
 		if (errno)
-			throw ConnectionFailedException(std::string("Unable to read protocol version from server: ")+stdstrerror(err));
+			throw ConnectionFailedException(std::string("Unable to read protocol version from server: ") + stdstrerror(err));
 		else
 			throw ConnectionFailedException(std::string("Unable to read protocol version from server: Connection closed."));
 	}
@@ -140,7 +139,7 @@ void RPCSvc::connect(std::string host, uint16_t port) {
 		int err = errno;
 		close(this->fd);
 		this->fd = -1;
-		throw ConnectionFailedException(std::string("Unable to write protocol version to server: ")+stdstrerror(err));
+		throw ConnectionFailedException(std::string("Unable to write protocol version to server: ") + stdstrerror(err));
 	}
 	dprintf("Sent ver %u\n", PROTOVER);
 }
@@ -150,8 +149,7 @@ void RPCSvc::disconnect() {
 	this->fd = -1;
 }
 
-bool RPCSvc::load_module(std::string module, std::string module_version_key)
-{
+bool RPCSvc::load_module(std::string module, std::string module_version_key) {
 	RPCMsg rpcreq("module.load");
 	rpcreq.set_string("module", module);
 	rpcreq.set_string("module_version_key", module_version_key);
@@ -164,8 +162,7 @@ bool RPCSvc::load_module(std::string module, std::string module_version_key)
 	}
 }
 
-RPCMsg RPCSvc::call_method(const RPCMsg &reqmsg)
-{
+RPCMsg RPCSvc::call_method(const RPCMsg &reqmsg) {
 	/* RPC Protocol Communications
 	 *
 	 * Initial Handshake:
@@ -205,7 +202,7 @@ RPCMsg RPCSvc::call_method(const RPCMsg &reqmsg)
 	dprintf("Wrote crc32 0x%08x\n", ntohl(reqcrc));
 	uint32_t bytes_written = 0;
 	while (bytes_written < reqstr.size()) {
-		int rv = timeout_send(this->fd, reqstr.data()+bytes_written, reqstr.size()-bytes_written);
+		int rv = timeout_send(this->fd, reqstr.data() + bytes_written, reqstr.size() - bytes_written);
 		if (rv < 0) {
 			close(this->fd);
 			this->fd = -1;
@@ -234,7 +231,7 @@ RPCMsg RPCSvc::call_method(const RPCMsg &reqmsg)
 	uint32_t bytesread = 0;
 	char rspmsg[rsplen];
 	while (bytesread < rsplen) {
-		int rv = timeout_recv(this->fd, rspmsg+bytesread, rsplen-bytesread);
+		int rv = timeout_recv(this->fd, rspmsg + bytesread, rsplen - bytesread);
 		if (rv < 0) {
 			close(this->fd);
 			this->fd = -1;
@@ -253,7 +250,6 @@ RPCMsg RPCSvc::call_method(const RPCMsg &reqmsg)
 	return RPCMsg(rspmsg, rsplen);
 }
 
-RPCSvc::~RPCSvc()
-{
+RPCSvc::~RPCSvc() {
 	this->disconnect();
 }
