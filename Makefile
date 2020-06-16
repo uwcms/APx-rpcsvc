@@ -77,7 +77,7 @@ rpm:
 	git archive -9 --prefix $(RPM_PKGNAME)-$(RPM_VERSION)/ -o $(RPM_TOPDIR)/SOURCES/$(RPM_PKGNAME)-$(RPM_VERSION).tar.gz HEAD
 	echo '%define pkg_version $(RPM_VERSION)' > $(RPM_GENERATED_SPEC)
 	cat $(RPM_PKGNAME).spec >> $(RPM_GENERATED_SPEC)
-	echo | setsid rpmbuild -v -ba --sign --rmsource --clean -D 'pkg_version $(RPM_VERSION)' -D 'lib_version $(RPM_LIB_VERSION)' $(RPM_GENERATED_SPEC)
+	rpmbuild -v -ba --sign --rmsource --clean -D 'pkg_version $(RPM_VERSION)' -D 'lib_version $(RPM_LIB_VERSION)' $(RPM_GENERATED_SPEC)
 	rm -f $(RPM_GENERATED_SPEC)
 	mv $(RPM_TOPDIR)/SRPMS/$(RPM_PKGNAME)-$(RPM_VERSION)-*.rpm ./
 	mv $(RPM_TOPDIR)/RPMS/*/$(RPM_PKGNAME)-$(RPM_VERSION)-*.rpm ./

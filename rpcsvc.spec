@@ -10,9 +10,11 @@ License:        Reserved
 URL:            https://github.com/uwcms/APx-%{name}
 Source0:        %{name}-%{pkg_version}.tar.gz
 
-BuildRequires:  protobuf-lite protobuf-lite-devel protobuf-c-compiler libz.so.1 libwisci2c.so.1
+BuildRequires:  protobuf-lite protobuf-lite-devel protobuf-c-compiler libz.so.1
 BuildRequires:  systemd
 Requires:       protobuf-lite libz.so.1
+
+%global debug_package %{nil}
 
 %description
 The APx Gen 1 RPC Service provides a remote procedure call interface,
