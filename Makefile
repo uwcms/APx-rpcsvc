@@ -5,7 +5,7 @@ all: build modules packages
 build: rpcsvc
 
 rpcsvc: rpcsvc.o run_client.o ModuleManager.o wiscRPCMsg.o LogManager.o LockTools.o proto_cpp/rpcmsg.pb.o
-	$(CXX) $(LDFLAGS) -o $@ -rdynamic $^ $(LDLIBS) -leasymem -lledmgr -ldl -l:libz.so.1 -lrt $(patsubst -lz,-l:libz.so.1,$(shell pkg-config --libs protobuf-lite))
+	$(CXX) $(LDFLAGS) -o $@ -rdynamic $^ $(LDLIBS) -leasymem -lledmgr -ldl -l:libz.so.1 -lrt $(patsubst -lz,-l:libz.so.1,$(shell pkg-config --libs protobuf))
 
 clean:
 	chmod -fR u+w *.elf *.gdb *.o *.so modules/*.so packages/ proto_cpp/ *.rpm || true

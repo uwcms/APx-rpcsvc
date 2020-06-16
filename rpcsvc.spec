@@ -10,9 +10,9 @@ License:        Reserved
 URL:            https://github.com/uwcms/APx-%{name}
 Source0:        %{name}-%{pkg_version}.tar.gz
 
-BuildRequires:  protobuf-lite protobuf-lite-devel protobuf-c-compiler libz.so.1
+BuildRequires:  protobuf protobuf-devel protobuf-compiler libz.so.1
 BuildRequires:  systemd
-Requires:       protobuf-lite libz.so.1
+Requires:       protobuf libz.so.1
 
 %global debug_package %{nil}
 
