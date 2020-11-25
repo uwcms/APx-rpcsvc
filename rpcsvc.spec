@@ -1,18 +1,18 @@
-#define pkg_version provided by makefile
+# Build this using APx-rpmbuild
 %define name rpcsvc
 
 Name:           %{name}
-Version:        %{pkg_version}
-Release:        1%{?dist}
+Version:        %{version_rpm_spec_version}
+Release:        %{version_rpm_spec_release}%{?dist}
 Summary:        The APx Gen 1 RPC Service
 
 License:        Reserved
 URL:            https://github.com/uwcms/APx-%{name}
-Source0:        %{name}-%{pkg_version}.tar.gz
+Source0:        %{name}-%{version_rpm_spec_version}.tar.gz
 
-BuildRequires:  protobuf protobuf-devel protobuf-compiler libz.so.1
+BuildRequires:  protobuf protobuf-devel protobuf-compiler libz.so.1 ledmgr-devel easymem-devel
 BuildRequires:  systemd
-Requires:       protobuf libz.so.1
+Requires:       protobuf libz.so.1 ledmgr easymem
 
 %global debug_package %{nil}
 
@@ -38,7 +38,7 @@ APx Gen 1 RPC Service.
 
 %build
 ##configure
-make %{?_smp_mflags} LIB_VERSION=%{lib_version} RPCSVC_ACL_PATH=%{_sysconfdir}/rpcsvc.ipacl RPCSVC_MODULES_DIR=%{_libdir}/rpcsvc
+make %{?_smp_mflags} LIB_VERSION=%{version_sofile} RPCSVC_ACL_PATH=%{_sysconfdir}/rpcsvc.ipacl RPCSVC_MODULES_DIR=%{_libdir}/rpcsvc
 
 
 %install
