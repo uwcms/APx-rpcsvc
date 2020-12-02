@@ -23,6 +23,7 @@ functionality to higher level subsystem control or monitoring applications.
 
 %package devel
 Summary:        The APx Gen 1 RPC Service module development resources
+Requires:       easymem-devel
 
 %description devel
 The APx Gen 1 RPC Service provides a remote procedure call interface,
