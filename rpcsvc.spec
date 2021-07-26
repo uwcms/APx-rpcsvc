@@ -14,7 +14,7 @@ BuildRequires:  protobuf protobuf-devel protobuf-compiler libz.so.1 ledmgr-devel
 BuildRequires:  systemd
 Requires:       protobuf libz.so.1 ledmgr easymem
 
-%global debug_package %{nil}
+#global debug_package #{nil}
 
 %description
 The APx Gen 1 RPC Service provides a remote procedure call interface,
