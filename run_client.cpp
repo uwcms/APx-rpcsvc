@@ -112,7 +112,7 @@ int run_client(int clientfd) {
 		ERROR_DIE("Client is too old");
 
 	while (1) {
-		uint32_t reqlen, reqcrc;
+		uint32_t reqlen = 0, reqcrc;
 		int rv;
 		rv = recv(clientfd, &reqlen, 4, MSG_WAITALL);
 		if (rv == 0) {
@@ -120,7 +120,7 @@ int run_client(int clientfd) {
 			return 0;
 		}
 		if (rv != 4)
-			ERROR_DIE("Unable to read request length from client");
+			ERROR_DIE("Unable to read request length from client: rv = %d, buffer = 0x%08x, errno = %d", rv, reqlen, errno);
 		reqlen = ntohl(reqlen);
 		if (reqlen > MAX_MSGLEN)
 			ERROR_DIE("Client request too long: %u bytes", reqlen);
