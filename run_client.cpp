@@ -11,6 +11,7 @@
  */
 #define MAX_MSGLEN (1024*1024*8)
 
+#include <errno.h>
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
