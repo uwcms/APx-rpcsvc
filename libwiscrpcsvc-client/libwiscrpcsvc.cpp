@@ -1,13 +1,13 @@
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 #include <errno.h>
-#include <sys/types.h> 
-#include <sys/socket.h>
-#include <sys/select.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 // <zlib.h>
 extern "C" {
@@ -21,9 +21,8 @@ using namespace wisc;
 #define PROTOVER 3
 #define MIN_PROTOVER 3
 
-#undef	DEBUG_LIBRPCSVC
-#ifdef	DEBUG_LIBRPCSVC
-#include <stdio.h>
+#undef DEBUG_LIBRPCSVC
+#ifdef DEBUG_LIBRPCSVC
 #define dprintf(...) printf(__VA_ARGS__)
 #else
 #define dprintf(...)
@@ -95,28 +94,35 @@ std::string stdstrerror(int en) {
 }
 
 void RPCSvc::connect(std::string host, uint16_t port) {
-	struct sockaddr_in serv_addr;
-	struct hostent *server;
+	// Today I have learned that gethostbyname is NOT thread safe.
+	// I have also learned that it has been deprecated and removed from POSIX.
 
-	server = gethostbyname(host.c_str());
-	if (server == NULL)
-		throw ConnectionFailedException("Unable to resolve hostname");
+	struct addrinfo hints, *resolution;
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = 0;
 
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
-	serv_addr.sin_port = htons(port);
+	char strport[8];
+	snprintf(strport, 8, "%hu", port);
+	int gairv = getaddrinfo(host.c_str(), strport, &hints, &resolution);
+	if (gairv != 0)
+		throw ConnectionFailedException(std::string("Unable to resolve hostname: ") + gai_strerror(gairv));
 
-	this->fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->fd < 0)
-		throw ConnectionFailedException(std::string("Unable to create socket: ")+stdstrerror(errno));
+	this->fd = socket(resolution->ai_family, resolution->ai_socktype, resolution->ai_protocol);
+	if (this->fd < 0) {
+		freeaddrinfo(resolution);
+		throw ConnectionFailedException(std::string("Unable to create socket: ") + stdstrerror(errno));
+	}
 
-	if (::connect(this->fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)  {
+	if (::connect(this->fd, resolution->ai_addr, resolution->ai_addrlen) < 0) {
 		int err = errno;
 		close(this->fd);
 		this->fd = -1;
-		throw ConnectionFailedException(std::string("Unable to connect: ")+stdstrerror(err));
+		freeaddrinfo(resolution);
+		throw ConnectionFailedException(std::string("Unable to connect: ") + stdstrerror(err));
 	}
+	freeaddrinfo(resolution);
 
 	uint32_t protover;
 	if (timeout_recv(this->fd, &protover, 4) != 4) {
